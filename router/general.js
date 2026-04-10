@@ -7,7 +7,7 @@ let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
 
-// Register
+// Register new user
 public_users.post("/register", (req, res) => {
   const { username, password } = req.body;
 
@@ -45,7 +45,7 @@ public_users.get('/isbn/:isbn', (req, res) => {
     if (!books[isbn]) reject("Not found");
     else resolve(books[isbn]);
   })
-  .then((book) => res.status(200).json(book))
+  .then(book => res.status(200).json(book))
   .catch(() => res.status(404).json({ message: "Book not found" }));
 });
 
@@ -54,27 +54,33 @@ public_users.get('/isbn/:isbn', (req, res) => {
 public_users.get('/author/:author', async (req, res) => {
   const author = req.params.author.toLowerCase();
 
-  const result = Object.values(books).filter(
-    book => book.author.toLowerCase() === author
-  );
+  let result = {};
+  for (let key in books) {
+    if (books[key].author.toLowerCase() === author) {
+      result[key] = books[key];
+    }
+  }
 
   return res.status(200).json(result);
 });
 
 
-// ✅ Get books by TITLE (ASYNC)
+//  Get books by TITLE (ASYNC)
 public_users.get('/title/:title', async (req, res) => {
   const title = req.params.title.toLowerCase();
 
-  const result = Object.values(books).filter(
-    book => book.title.toLowerCase() === title
-  );
+  let result = {};
+  for (let key in books) {
+    if (books[key].title.toLowerCase() === title) {
+      result[key] = books[key];
+    }
+  }
 
   return res.status(200).json(result);
 });
 
 
-// Reviews
+// Get book reviews
 public_users.get('/review/:isbn', (req, res) => {
   const isbn = req.params.isbn;
 
@@ -83,6 +89,17 @@ public_users.get('/review/:isbn', (req, res) => {
   }
 
   return res.status(200).json(books[isbn].reviews);
+});
+
+
+
+public_users.get('/asyncbooks', async (req, res) => {
+  try {
+    const response = await axios.get('http://localhost:3000/');
+    return res.status(200).json(response.data);
+  } catch (err) {
+    return res.status(500).json({ message: "Error fetching books" });
+  }
 });
 
 module.exports.general = public_users;
